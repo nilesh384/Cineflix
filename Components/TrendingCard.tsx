@@ -5,6 +5,7 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-na
 
 import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
+import React from "react";
 
 const TrendingCard = ({
   movie: { movie_id, title, poster_url, vote_average },
@@ -17,7 +18,7 @@ const TrendingCard = ({
   }));
 
   return (
-    <Link href={movie_id ? `../movie/${movie_id}` : "../movie/1"} asChild>
+    <Link href={movie_id ? `../movies/${movie_id}` : "../movies/1"} asChild>
       <TouchableOpacity
         className="relative pl-3"
         onPressIn={() => (scale.value = withSpring(0.95))}
@@ -67,4 +68,4 @@ const TrendingCard = ({
   );
 };
 
-export default TrendingCard;
+export default React.memo(TrendingCard);

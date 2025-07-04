@@ -8,24 +8,44 @@ export const TMDB_CONFIG = {
 }
 
 
-export const fetchMovies = async ({query}: {query: string}) => {
-    const endpoint = query?
-    `${TMDB_CONFIG.BASE_URL}/search/movie?query=${encodeURIComponent(query)}` :
-    `${TMDB_CONFIG.BASE_URL}/discover/movie?sort_by=popularity.desc`;
+export const fetchMovies = async ({ query, page = 1 }: { query: string; page?: number })     => {
+  const endpoint = query
+    ? `${TMDB_CONFIG.BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+    : `${TMDB_CONFIG.BASE_URL}/movie/popular?language=en-US&page=${page}`;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: TMDB_CONFIG.headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Network error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data; // return full response with `results` and `total_pages`
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    throw error;
+  }
+};
+
+export const fetchMovieDetails = async (movieId: string): Promise<MovieDetails> => {
     try {
-        const response = await fetch(endpoint, {
+        const response = await fetch(`${TMDB_CONFIG.BASE_URL}/movie/${movieId}`, {
             method: 'GET',
-            headers: TMDB_CONFIG.headers
+            headers: TMDB_CONFIG.headers,
         });
-        
+
         if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText}`);
+            throw new Error(`Network error: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        return data.results;
+        return data as MovieDetails;
     } catch (error) {
-        console.error("Error fetching movies:", error);
+        console.log("Error fetching movie details:", error);
         throw error;
     }
 }
