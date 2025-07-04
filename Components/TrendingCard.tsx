@@ -8,7 +8,7 @@ import { icons } from "@/constants/icons";
 import React from "react";
 
 const TrendingCard = ({
-  movie: { movie_id, title, poster_url, vote_average },
+  movie: { movie_id, title, poster_url, vote_average, media_type },
   index,
 }: TrendingCardProps) => {
   const scale = useSharedValue(1);
@@ -18,7 +18,17 @@ const TrendingCard = ({
   }));
 
   return (
-    <Link href={movie_id ? `../movies/${movie_id}` : "../movies/1"} asChild>
+    <Link
+  href={{
+    pathname: "/movies/[id]",
+    params: {
+      id: movie_id,
+      type: media_type === "tv" ? "tv" : "movie", // fallback to 'movie'
+    },
+  }}
+  asChild
+>
+
       <TouchableOpacity
         className="relative pl-3"
         onPressIn={() => (scale.value = withSpring(0.95))}
@@ -39,6 +49,14 @@ const TrendingCard = ({
               {vote_average ? vote_average.toFixed(1) : "N/A"}
             </Text>
           </View>
+
+          {media_type === 'tv' && (
+                  <View className="absolute top-1.5 left-1.5 bg-black px-2 py-1 rounded-md flex-row items-center">
+                    <Text className="text-xs text-yellow-400">
+                      {media_type.toUpperCase()}
+                    </Text>
+                  </View>
+                )}
 
           {/* Ranking Mask */}
           <View className="absolute bottom-10 -left-4 px-2 py-1 rounded-full">

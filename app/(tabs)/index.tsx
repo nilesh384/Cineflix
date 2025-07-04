@@ -13,7 +13,7 @@ import MovieCard from "@/Components/MovieCard";
 import TrendingCard from "@/Components/TrendingCard";
 import SkeletonTrendingCard from "@/Components/SkeletonTrendingCard";
 import SkeletonMovieCard from "@/Components/SkeletonMovieCard";
-import { fetchMovies } from "@/services/api";
+import { fetchAll } from "@/services/api";
 import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 
@@ -39,7 +39,7 @@ export default function Index() {
   const loadMovies = async (reset = false) => {
     try {
       const currentPage = reset ? 1 : page;
-      const data = await fetchMovies({ query: "", page: currentPage });
+      const data = await fetchAll({ query: "", page: currentPage });
 
       if (reset) {
         setMovies(data.results);
@@ -109,7 +109,7 @@ export default function Index() {
                   data={uniqueTrendingMovies}
                   keyExtractor={(item, index) => `${item.movie_id}_${index}`}
                   renderItem={({ item, index }) => (
-                    <TrendingCard movie={item} index={index} />
+                    <TrendingCard movie={item} index={index} media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} />
                   )}
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ gap: 16 }}
@@ -125,14 +125,16 @@ export default function Index() {
             </Text>
           </>
         }
+        scrollEnabled={true}
         data={movies}
         renderItem={({ item }) => (
           <MovieCard
             id={item.id}
             poster_path={item.poster_path}
-            title={item.title}
+            title={item.title || item.name || "Untitled"}
             vote_average={item.vote_average}
-            release_date={item.release_date}
+            release_date={item.release_date || item.first_air_date || ""}
+            media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
           />
         )}
         keyExtractor={(item) => item.id.toString()}

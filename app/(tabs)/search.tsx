@@ -2,7 +2,7 @@ import MovieCard from "@/Components/MovieCard";
 import SearchBar from "@/Components/SearchBar";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
-import { fetchMovies } from "@/services/api";
+import { fetchAll } from "@/services/api";
 import { updateSeachCount } from "@/services/appwrite";
 import { useEffect, useState } from "react";
 import {
@@ -25,7 +25,7 @@ export default function Search() {
         try {
           setLoading(true);
           setError(null);
-          const data = await fetchMovies({ query: searchQuery });
+          const data = await fetchAll({ query: searchQuery });
           setMovies(data.results || []);
         } catch (err: any) {
           setError(err);
@@ -43,7 +43,13 @@ export default function Search() {
   // Optional: log to Appwrite
   useEffect(() => {
     if (searchQuery.trim() && movies.length > 0) {
-      updateSeachCount(searchQuery, movies[0]);
+      updateSeachCount(
+        searchQuery,
+        movies[0],
+        movies[0]?.media_type === "movie" || movies[0]?.media_type === "tv"
+          ? movies[0].media_type
+          : "movie"
+      );
     }
   }, [movies]);
 
@@ -62,7 +68,7 @@ export default function Search() {
           paddingHorizontal: 2,
         }}
         contentContainerStyle={{ paddingBottom: 50 }}
-        scrollEnabled={false}
+        scrollEnabled={true}
         ListHeaderComponent={
           <View>
             <Image
@@ -101,9 +107,10 @@ export default function Search() {
           <MovieCard
             id={item.id}
             poster_path={item.poster_path}
-            title={item.title}
+            title={item.title || item.name || "Untitled"}
             vote_average={item.vote_average}
-            release_date={item.release_date}
+            release_date={item.release_date || item.first_air_date || ""}
+            media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
           />
         )}
         ListEmptyComponent={

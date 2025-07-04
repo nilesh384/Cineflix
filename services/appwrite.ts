@@ -14,7 +14,8 @@ const databases = new Databases(client);
 
 export const updateSeachCount = async (
   query: string,
-  movie: Movie | undefined
+  movie: Movie | undefined,
+  type: 'movie' | 'tv' // 👈 Accept type
 ) => {
   if (!query.trim() || !movie) return;
 
@@ -35,20 +36,31 @@ export const updateSeachCount = async (
       );
       console.log("🔁 Updated search count:", existingMovie.searchTerm);
     } else {
-      await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-        searchTerm: query,
-        movie_id: movie.id,
-        count: 1,
-        poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-        title: movie.title,
-        vote_average: movie.vote_average,
-      });
+      const rawTitle = type === 'movie' ? movie.title : movie.name;
+const title = rawTitle?.trim() || "Untitled"; // fallback if missing or empty
+const poster_url = movie.poster_path
+  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+  : "";
+const vote_average = movie.vote_average || 0;
+
+await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+  searchTerm: query,
+  movie_id: movie.id,
+  count: 1,
+  title,
+  poster_url,
+  vote_average,
+  media_type: type,
+});
+
+
       console.log("🆕 Created new search record:", query);
     }
   } catch (error) {
     console.error("❌ Appwrite Error:", error);
   }
 };
+
 
 export const getTrendingMovies = async (): Promise<TrendingMovie[] | undefined> => {
   try {

@@ -8,11 +8,14 @@ interface Movie {
   original_title: string;
   overview: string;
   popularity: number;
-  poster_path: string;
+  poster_path: string;moviede
   release_date: string;
   video: boolean;
   vote_average: number;
   vote_count: number;
+  media_type?: string;
+  first_air_date?: string; 
+  name?: string;
 }
 
 interface TrendingMovie {
@@ -22,6 +25,7 @@ interface TrendingMovie {
   count: number;
   poster_url: string;
   vote_average: number;
+  media_type?: string; // Optional, for TV shows
 }
 
 interface MovieDetails {
@@ -57,6 +61,8 @@ interface MovieDetails {
     name: string;
   }[];
   release_date: string;
+  first_air_date?: string; 
+  last_air_date?: string;
   revenue: number;
   runtime: number | null;
   spoken_languages: {
@@ -67,6 +73,7 @@ interface MovieDetails {
   status: string;
   tagline: string | null;
   title: string;
+  name?: string; // For TV shows
   video: boolean;
   vote_average: number;
   vote_count: number;
@@ -75,4 +82,16 @@ interface MovieDetails {
 interface TrendingCardProps {
   movie: TrendingMovie;
   index: number;
+  media_type?: string; // Optional, for TV shows
+}
+
+interface MovieTrailer {
+  id: string;
+  name: string;
+  key: string; // YouTube video key
+  site: string;
+  size: number;
+  type: "Trailer";
+  official: boolean;
+  published_at: string;
 }

@@ -8,14 +8,14 @@ export const TMDB_CONFIG = {
 }
 
 
-export const fetchMovies = async ({ query, page = 1 }: { query: string; page?: number })     => {
+export const fetchAll = async ({query, page = 1,}: {query: string; page?: number;}) => {
   const endpoint = query
-    ? `${TMDB_CONFIG.BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-    : `${TMDB_CONFIG.BASE_URL}/movie/popular?language=en-US&page=${page}`;
+    ? `${TMDB_CONFIG.BASE_URL}/search/multi?query=${encodeURIComponent(query)}&page=${page}`
+    : `${TMDB_CONFIG.BASE_URL}/trending/all/week?page=${page}`;
 
   try {
     const response = await fetch(endpoint, {
-      method: 'GET',
+      method: "GET",
       headers: TMDB_CONFIG.headers,
     });
 
@@ -24,28 +24,109 @@ export const fetchMovies = async ({ query, page = 1 }: { query: string; page?: n
     }
 
     const data = await response.json();
-    return data; // return full response with `results` and `total_pages`
+
+    // Filter out people (media_type === "person")
+    const filteredResults = data.results?.filter(
+      (item: any) => item.media_type === "movie" || item.media_type === "tv"
+    );
+
+    return { ...data, results: filteredResults };
   } catch (error) {
-    console.error("Error fetching movies:", error);
+    console.error("Error fetching search data:", error);
     throw error;
   }
 };
 
-export const fetchMovieDetails = async (movieId: string): Promise<MovieDetails> => {
-    try {
-        const response = await fetch(`${TMDB_CONFIG.BASE_URL}/movie/${movieId}`, {
-            method: 'GET',
-            headers: TMDB_CONFIG.headers,
-        });
 
-        if (!response.ok) {
-            throw new Error(`Network error: ${response.statusText}`);
-        }
+export const fetchMediaDetails = async (
+  id: string,
+  type: 'movie' | 'tv'
+): Promise<MovieDetails> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/${type}/${id}`,
+      {
+        method: 'GET',
+        headers: TMDB_CONFIG.headers,
+      }
+    );
 
-        const data = await response.json();
-        return data as MovieDetails;
-    } catch (error) {
-        console.log("Error fetching movie details:", error);
-        throw error;
+    if (!response.ok) {
+      throw new Error(`Network error: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+  const errText = await error?.response?.text?.();
+  console.log("Fetch failed:", errText || error);
+  throw error;
 }
+};
+
+
+export const fetchTrailer = async (id: string, type: 'movie' | 'tv') => {
+  try {
+    const response = await fetch(`${TMDB_CONFIG.BASE_URL}/${type}/${id}/videos?language=en-US`, {
+      headers: TMDB_CONFIG.headers,
+    });
+
+    if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+
+    const data = await response.json();
+    return data.results || []; // safely return array
+  } catch (err) {
+    console.error("Trailer fetch failed:", err);
+    return [];
+  }
+};
+
+export const fetchWatchProviders = async (id: string, type: 'movie' | 'tv') => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/${type}/${id}/watch/providers`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch providers");
+
+    const data = await res.json();
+    const providerInfo = data.results?.["IN"] || data.results?.["US"];
+
+    if (!providerInfo) return { link: '', flatrate: [], buy: [], rent: [] };
+
+    return {
+      link: providerInfo.link,
+      flatrate: providerInfo.flatrate || [],
+      buy: providerInfo.buy || [],
+      rent: providerInfo.rent || [],
+    };
+    
+  } catch (err) {
+    console.error("Watch provider fetch failed:", err);
+    return { link: '', flatrate: [], buy: [], rent: [] };
+  }
+};
+
+export const fetchCredits = async (id: string, type: 'movie' | 'tv') => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/${type}/${id}/credits`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch credits");
+
+    const data = await res.json();
+    return data.cast || [];
+  } catch (err) {
+    console.error("Credits fetch failed:", err);
+    return [];
+  }
+};
+
+
