@@ -4,6 +4,8 @@ import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { fetchAll } from "@/services/api";
 import { updateSeachCount } from "@/services/appwrite";
+import { useAuth } from "@/services/AuthContext";
+import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +16,11 @@ import {
 } from "react-native";
 
 export default function Search() {
+  const { user, isLoading } = useAuth();
+
+  if (!user && !isLoading) return <Redirect href="/auth/Login" />;
+  if (isLoading) return null;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);

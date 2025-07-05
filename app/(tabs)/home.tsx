@@ -17,7 +17,7 @@ import { fetchAll } from "@/services/api";
 import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 
-export default function Index() {
+export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(1);

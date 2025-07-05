@@ -1,4 +1,4 @@
-import { Client, Databases, ID, Query } from "appwrite";
+import { Client, Databases, ID, Query, Account } from "appwrite";
 
 // track the searches made by a user
 
@@ -76,3 +76,5 @@ export const getTrendingMovies = async (): Promise<TrendingMovie[] | undefined> 
     return undefined;
   }
 };
+
+export const account = new Account(client);
