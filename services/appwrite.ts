@@ -3,7 +3,8 @@ import { Client, Databases, ID, Query, Account } from "appwrite";
 // track the searches made by a user
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID!;
+const TRENDING_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID_TRENDING!;
+const SAVED_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID_SAVED!;
 
 const client = new Client();
 client
@@ -20,7 +21,7 @@ export const updateSeachCount = async (
   if (!query.trim() || !movie) return;
 
   try {
-    const result = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+    const result = await databases.listDocuments(DATABASE_ID, TRENDING_COLLECTION_ID, [
       Query.equal("searchTerm", query),
     ]);
 
@@ -28,7 +29,7 @@ export const updateSeachCount = async (
       const existingMovie = result.documents[0];
       await databases.updateDocument(
         DATABASE_ID,
-        COLLECTION_ID,
+        TRENDING_COLLECTION_ID,
         existingMovie.$id,
         {
           count: (existingMovie.count || 0) + 1,
@@ -43,7 +44,7 @@ const poster_url = movie.poster_path
   : "";
 const vote_average = movie.vote_average || 0;
 
-await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+await databases.createDocument(DATABASE_ID, TRENDING_COLLECTION_ID, ID.unique(), {
   searchTerm: query,
   movie_id: movie.id,
   count: 1,
@@ -64,7 +65,7 @@ await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
 
 export const getTrendingMovies = async (): Promise<TrendingMovie[] | undefined> => {
   try {
-    const result = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+    const result = await databases.listDocuments(DATABASE_ID, TRENDING_COLLECTION_ID, [
       Query.limit(10),
       Query.orderDesc("count"),
     
@@ -76,5 +77,95 @@ export const getTrendingMovies = async (): Promise<TrendingMovie[] | undefined> 
     return undefined;
   }
 };
+
+
+export const saveMovieToDB = async (
+  userId: string,
+  movie: {
+    id: number;
+    title: string;
+    poster_url: string;
+    vote_average: number;
+    release_date: string; // should be ISO string
+    media_type: 'movie' | 'tv';
+  }
+) => {
+  try {
+    const existing = await databases.listDocuments(DATABASE_ID, SAVED_COLLECTION_ID, [
+      Query.equal('userId', userId),
+      Query.equal('movie_id', movie.id),
+    ]);
+
+    if (existing.total > 0) {
+      return;
+    }
+
+    await databases.createDocument(DATABASE_ID, SAVED_COLLECTION_ID, ID.unique(), {
+      userId,
+      movie_id: movie.id,
+      title: movie.title,
+      poster_url: movie.poster_url,
+      vote_average: movie.vote_average,
+      release_date: new Date(movie.release_date).toISOString(), // Make sure it's ISO
+      media_type: movie.media_type,
+    });
+
+    console.log("✅ Movie saved:", movie.title);
+  } catch (error) {
+    console.error("❌ saveMovieToDB error:", error);
+    throw error;
+  }
+};
+
+
+export const getSavedMovies = async (userId: string) => {
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, SAVED_COLLECTION_ID, [
+      Query.equal('userId', userId),
+    ]);
+    console.log("📦 Saved movies:", res.documents.length);
+    return res.documents;
+  } catch (error) {
+    console.error("❌ getSavedMovies error:", error);
+    return [];
+  }
+};
+
+
+export const checkIfSaved = async (
+  userId: string,
+  movie_id: number
+): Promise<boolean> => {
+  const result = await databases.listDocuments(DATABASE_ID, SAVED_COLLECTION_ID, [
+    Query.equal('userId', userId),
+    Query.equal('movie_id', movie_id),
+  ]);
+
+  return result.total > 0;
+}
+
+export const deleteSavedMovie = async (
+  userId: string,
+  movie_id: number
+): Promise<void> => {
+  try {
+    const result = await databases.listDocuments(DATABASE_ID, SAVED_COLLECTION_ID, [
+      Query.equal('userId', userId),
+      Query.equal('movie_id', movie_id),
+    ]);
+
+    if (result.total > 0) {
+      const documentId = result.documents[0].$id;
+      await databases.deleteDocument(DATABASE_ID, SAVED_COLLECTION_ID, documentId);
+      console.log("🗑️ Deleted movie from saved list:", movie_id);
+    } else {
+      console.log(`⚠️ No saved movie found for ID ${movie_id}.`);
+    }
+  } catch (error) {
+    console.error("❌ deleteSavedMovie error:", error);
+  }
+};
+
+
 
 export const account = new Account(client);

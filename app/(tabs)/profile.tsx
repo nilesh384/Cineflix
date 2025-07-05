@@ -16,8 +16,8 @@ export default function Profile() {
 
   const handleLogout = async () => {
     try {
+      <Redirect href="/auth/Login" />;
       await logout();
-      <Redirect href="/(tabs)/home" />;
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "Something went wrong during logout.");

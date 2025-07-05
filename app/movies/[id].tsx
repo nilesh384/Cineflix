@@ -1,10 +1,26 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, Modal, Linking } from 'react-native';
-import React, { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  Linking,
+  ToastAndroid,
+} from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import useFetch from '@/services/useFetch';
-import { fetchCredits, fetchMediaDetails, fetchTrailer, fetchWatchProviders } from '@/services/api';
+import {
+  fetchCredits,
+  fetchMediaDetails,
+  fetchTrailer,
+  fetchWatchProviders,
+} from '@/services/api';
 import { icons } from '@/constants/icons';
 import { WebView } from 'react-native-webview';
+import { useAuth } from '@/services/AuthContext';
+import { checkIfSaved, saveMovieToDB, deleteSavedMovie } from '@/services/appwrite';
 
 const MovieDetails = () => {
   const { id, type } = useLocalSearchParams();
@@ -14,6 +30,54 @@ const MovieDetails = () => {
   const { data: cast } = useFetch(() => fetchCredits(id as string, type as 'movie' | 'tv'));
 
   const [showTrailer, setShowTrailer] = useState(false);
+  const { user, isLoading } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const checkSaved = async () => {
+      if (user && movie) {
+        try {
+          const res = await checkIfSaved(user.$id, movie.id);
+          setIsSaved(res);
+        } catch (err) {
+          console.error("❌ Error checking saved state:", err);
+        }
+      }
+    };
+
+    checkSaved();
+  }, [user, movie]);
+
+
+  const handleSave = async () => {
+    if (!user || !movie) return;
+    if (isSaved) {
+      try {
+        await deleteSavedMovie(user.$id, movie.id);
+        setIsSaved(false);
+        ToastAndroid.show('Movie removed from saved list!', 1500);
+      } catch (error) {
+        console.error('❌ Delete Error:', error);
+      }
+      return;
+    } else {
+      try {
+        await saveMovieToDB(user.$id, {
+          id: movie.id,
+          title: movie.title || movie.name || '',
+          poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+          vote_average: movie.vote_average || 0,
+          release_date: movie.release_date || movie.first_air_date || '',
+          media_type: type as 'movie' | 'tv',
+        });
+        setIsSaved(true);
+        ToastAndroid.show('Movie saved successfully!', 1500);
+      } catch (error) {
+        console.error('❌ Save Error:', error);
+      }
+    }
+  };
+
 
   const trailer = useMemo(() => {
     if (!trailers || !Array.isArray(trailers)) return null;
@@ -96,6 +160,21 @@ const MovieDetails = () => {
               <Image source={icons.play} className="w-6 h-6" tintColor="#fff" />
             </TouchableOpacity>
           )}
+
+          {movie && user && (
+            <TouchableOpacity
+              className="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-20"
+              onPress={handleSave}
+            >
+              <Image
+                source={isSaved ? icons.saveFilled : icons.save}
+                className="w-8 h-8"
+                tintColor="#FEDD00"
+              />
+            </TouchableOpacity>
+          )}
+
+
         </View>
 
         {movie && (
@@ -114,15 +193,15 @@ const MovieDetails = () => {
                 </Text>
               </View>
 
-              {movie?.last_air_date &&(
+              {movie?.last_air_date && (
                 <Text className="text-gray-400 text-sm bg-dark-100 px-2 py-1 rounded shrink-0">
                   {new Date(movie.first_air_date ?? '').getFullYear()} - {new Date(movie.last_air_date ?? '').getFullYear()}
                 </Text>
               )}
               {movie.release_date && (
                 <Text className="text-gray-400 text-sm bg-dark-100 px-2 py-1 rounded shrink-0">
-                {new Date(movie?.release_date || "Release date").getFullYear()}
-              </Text>
+                  {new Date(movie?.release_date || "Release date").getFullYear()}
+                </Text>
               )}
 
               {movie.runtime && (
