@@ -31,7 +31,7 @@ const MovieCard = ({
   };
   
   return (
-    <TouchableOpacity className='w-[30%]' onPress={handlePress}>
+    <TouchableOpacity className='w-32' onPress={handlePress}>
       <View className="relative w-full h-52">
         <Image
           source={{

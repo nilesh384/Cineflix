@@ -1,4 +1,9 @@
+import Carousel from 'react-native-reanimated-carousel';
+import Animated, { useSharedValue, useAnimatedStyle, interpolate } from 'react-native-reanimated';
+
+
 import {
+  Dimensions,
   View,
   Text,
   Image,
@@ -16,11 +21,13 @@ import {
   fetchMediaDetails,
   fetchTrailer,
   fetchWatchProviders,
+  fetchMediaImages
 } from '@/services/api';
 import { icons } from '@/constants/icons';
 import { WebView } from 'react-native-webview';
 import { useAuth } from '@/services/AuthContext';
 import { checkIfSaved, saveMovieToDB, deleteSavedMovie } from '@/services/appwrite';
+import Dot from '@/Components/Dot';
 
 const MovieDetails = () => {
   const { id, type } = useLocalSearchParams();
@@ -28,10 +35,14 @@ const MovieDetails = () => {
   const { data: trailers } = useFetch(() => fetchTrailer(id as string, type as 'movie' | 'tv'));
   const { data: providersData } = useFetch(() => fetchWatchProviders(id as string, type as 'movie' | 'tv'));
   const { data: cast } = useFetch(() => fetchCredits(id as string, type as 'movie' | 'tv'));
+  const { data: posters } = useFetch(() => fetchMediaImages(id as string, type as 'movie' | 'tv'));
 
   const [showTrailer, setShowTrailer] = useState(false);
   const { user, isLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
+
+  const { width } = Dimensions.get('window');
+  const progressValue = useSharedValue(0);
 
   useEffect(() => {
     const checkSaved = async () => {
@@ -143,19 +154,47 @@ const MovieDetails = () => {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View>
-          {movie?.poster_path ? (
-            <Image
-              source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
-              className="w-full h-[500px]"
-              resizeMode="cover"
-            />
+          {posters?.length > 0 ? (
+            <View className="relative">
+              <Carousel
+                width={width}
+                height={500}
+                data={posters.slice(0, 10)}
+                loop
+                autoPlay
+                scrollAnimationDuration={1000}
+                onProgressChange={(_, absoluteProgress) =>
+                  (progressValue.value = absoluteProgress)
+                }
+                renderItem={({ item }: { item: { file_path: string } }) => (
+                  <Image
+                    source={{ uri: `https://image.tmdb.org/t/p/w780${item.file_path}` }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                )}
+              />
+
+              {/* Dot indicators */}
+              <View className="absolute bottom-4 left-0 right-0 flex-row justify-center items-center space-x-2 z-10">
+                {posters.slice(0, 10).map((_: Poster, i: number) => (
+                  <Dot key={i} index={i} progressValue={progressValue} />
+                ))}
+
+              </View>
+            </View>
           ) : (
             <Image
-              source={{ uri: 'https://cinemaone.net/images/movie_placeholder.png' }}
+              source={{
+                uri: movie?.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                  : 'https://cinemaone.net/images/movie_placeholder.png',
+              }}
               className="w-full h-[500px]"
               resizeMode="cover"
             />
           )}
+
           {trailer?.key && (
             <TouchableOpacity
               className="absolute bottom-4 right-4 bg-black/60 p-3 rounded-full z-20"
@@ -306,6 +345,7 @@ const MovieDetails = () => {
             </View>
 
             {cast?.length > 0 && (
+
               <View className="mt-6">
                 <Text className="text-white text-base font-semibold mb-2">Cast</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
@@ -316,33 +356,43 @@ const MovieDetails = () => {
                     name: string;
                     character: string;
                   }) => (
-                    <View key={member.cast_id || member.id} className="items-center mr-5 w-32">
-                      <Image
-                        source={{
-                          uri: member.profile_path
-                            ? `https://image.tmdb.org/t/p/w300${member.profile_path}`
-                            : "https://via.placeholder.com/120x180?text=?",
-                        }}
-                        className="w-32 h-44 rounded-xl bg-dark-100"
-                        resizeMode="cover"
-                      />
-                      <Text
-                        className="text-white text-sm mt-2 font-semibold text-center"
-                        numberOfLines={2}
-                      >
-                        {member.name}
-                      </Text>
-                      <Text
-                        className="text-gray-400 text-xs text-center"
-                        numberOfLines={2}
-                      >
-                        as {member.character}
-                      </Text>
-                    </View>
+
+                    <TouchableOpacity
+                      className="mt-6 mb-4"
+                      onPress={() => router.push({
+                        pathname: '/people/[personId]',
+                        params: { personId: member.id.toString() }
+                      })}
+                    >
+                      <View key={member.cast_id || member.id} className="items-center mr-5 w-32">
+                        <Image
+                          source={{
+                            uri: member.profile_path
+                              ? `https://image.tmdb.org/t/p/w300${member.profile_path}`
+                              : "https://via.placeholder.com/120x180?text=?",
+                          }}
+                          className="w-32 h-44 rounded-xl bg-dark-100"
+                          resizeMode="cover"
+                        />
+                        <Text
+                          className="text-white text-sm mt-2 font-semibold text-center"
+                          numberOfLines={2}
+                        >
+                          {member.name}
+                        </Text>
+                        <Text
+                          className="text-gray-400 text-xs text-center"
+                          numberOfLines={2}
+                        >
+                          as {member.character}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
 
                   ))}
                 </ScrollView>
               </View>
+
             )}
 
 

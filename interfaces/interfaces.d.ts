@@ -95,3 +95,56 @@ interface MovieTrailer {
   official: boolean;
   published_at: string;
 }
+
+interface Poster {
+  aspect_ratio: number;
+  height: number;
+  iso_639_1: string | null;
+  file_path: string;
+  vote_average: number;
+  vote_count: number;
+  width: number;
+};
+
+interface Person {
+  profile_path?: string | null;
+  name: string;
+  known_for_department?: string;
+  birthday?: string;
+  deathday?: string | null;
+  place_of_birth?: string;
+  also_known_as?: string[];
+  biography?: string;
+  homepage?: string;
+}
+
+interface PersonPicture {
+  aspect_ratio: number;
+  height: number;
+  iso_639_1: string | null;
+  file_path: string;
+  vote_average: number;
+  vote_count: number;
+  width: number;
+}
+
+
+interface PersonMovieCredit {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  vote_average: number;
+  release_date: string;
+  media_type: 'movie' | 'tv';
+  character: string;
+}
+
+interface PersonTvCredit {
+  id: number;
+  name: string;
+  poster_path: string | null;
+  vote_average: number;
+  first_air_date: string;
+  character: string;
+  media_type: 'tv';
+}

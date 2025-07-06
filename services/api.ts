@@ -130,3 +130,114 @@ export const fetchCredits = async (id: string, type: 'movie' | 'tv') => {
 };
 
 
+export const fetchMediaImages = async (id: string, type: 'movie' | 'tv') => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/${type}/${id}/images`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch images");
+
+    const data = await res.json();
+    return data.posters || [];
+  } catch (err) {
+    console.error("Images fetch failed:", err);
+    return [];
+  }
+}
+
+export const fetchPersonDetails = async (personId: string) => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/person/${personId}?language=en-US`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch person details");
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Person details fetch failed:", err);
+    return null;
+  }
+}
+
+export const fetchPersonPictures = async (personId: string) => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/person/${personId}/images`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch person pictures");
+
+    const data = await res.json();
+    return data.profiles || [];
+  } catch (err) {
+    console.error("Person pictures fetch failed:", err);
+    return [];
+  }
+}
+
+export const fetchPersonOtherMovies = async (personId: string) => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/person/${personId}/movie_credits`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch person's movies");
+
+    const data = await res.json();
+    return data.cast.map((movie: any) => ({
+      id: movie.id,
+      title: movie.title || movie.original_title || 'Untitled',
+      poster_path: movie.poster_path,
+      vote_average: movie.vote_average,
+      release_date: movie.release_date,
+      media_type: 'movie',
+      character: movie.character,
+    }));
+  } catch (err) {
+    console.error("Person's movies fetch failed:", err);
+    return [];
+  }
+}
+
+export const fetchPersonTvCredits = async (personId: string): Promise<PersonTvCredit[]> => {
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/person/${personId}/tv_credits`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch person's TV credits");
+
+    const data = await res.json();
+
+    return data.cast.map((show: any) => ({
+      id: show.id,
+      name: show.name || show.original_name || 'Untitled',
+      poster_path: show.poster_path,
+      vote_average: show.vote_average,
+      first_air_date: show.first_air_date,
+      character: show.character,
+      media_type: 'tv',
+    }));
+  } catch (err) {
+    console.error("TV credits fetch failed:", err);
+    return [];
+  }
+};
