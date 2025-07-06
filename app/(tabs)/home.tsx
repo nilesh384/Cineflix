@@ -6,6 +6,7 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
@@ -16,8 +17,13 @@ import SkeletonMovieCard from "@/Components/SkeletonMovieCard";
 import { fetchAll } from "@/services/api";
 import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
+import { useAuth } from "@/services/AuthContext";
+import { router } from "expo-router";
 
 export default function Home() {
+
+  const { user } = useAuth();
+
   const [refreshing, setRefreshing] = useState(false);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(1);
@@ -80,9 +86,27 @@ export default function Home() {
     <View className="bg-primary flex-1">
       <Image source={images.bg} className="absolute w-full h-full z-0" />
 
+
       <FlatList
         ListHeaderComponent={
           <>
+
+            {user && (
+              <TouchableOpacity onPress={() => { router.push("/profile") } } className="z-10 " >
+              <Image
+                source={
+                  user?.name
+                    ? { uri: `https://api.dicebear.com/7.x/fun-emoji/png?seed=${user.name}` }
+                    : { uri: "https://api.dicebear.com/7.x/fun-emoji/png?seed=default" }
+                }
+                className="w-10 h-10 rounded-full mb-6 absolute top-6 right-1 z-10 border-white border-2"
+                resizeMode="cover"
+
+              />
+
+            </TouchableOpacity>
+            )}
+
             <Image
               source={icons.logo}
               className="w-24 h-16 z-10 mt-24 self-center"
@@ -140,7 +164,8 @@ export default function Home() {
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         columnWrapperStyle={{
-          justifyContent: "space-evenly",
+          justifyContent: "flex-start",
+          gap: 13,
           paddingHorizontal: 2,
           marginBottom: 10,
         }}

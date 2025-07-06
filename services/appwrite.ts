@@ -1,5 +1,17 @@
 import { Client, Databases, ID, Query, Account } from "appwrite";
 
+// Define the SavedMovie type if not already defined or imported
+export type SavedMovie = {
+  $id: string;
+  userId: string;
+  movie_id: number;
+  title: string;
+  poster_url: string;
+  vote_average: number;
+  release_date: string;
+  media_type: 'movie' | 'tv';
+};
+
 // track the searches made by a user
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
@@ -109,8 +121,6 @@ export const saveMovieToDB = async (
       release_date: new Date(movie.release_date).toISOString(), // Make sure it's ISO
       media_type: movie.media_type,
     });
-
-    console.log("✅ Movie saved:", movie.title);
   } catch (error) {
     console.error("❌ saveMovieToDB error:", error);
     throw error;
@@ -124,7 +134,11 @@ export const getSavedMovies = async (userId: string) => {
       Query.equal('userId', userId),
     ]);
     console.log("📦 Saved movies:", res.documents.length);
-    return res.documents;
+    return res.documents.sort((a, b) => {
+      const dateA = new Date(a.$createdAt).getTime();
+      const dateB = new Date(b.$createdAt).getTime();
+      return dateB - dateA; // Sort by release_date descending
+    }) as unknown as SavedMovie[];
   } catch (error) {
     console.error("❌ getSavedMovies error:", error);
     return [];
@@ -157,7 +171,6 @@ export const deleteSavedMovie = async (
     if (result.total > 0) {
       const documentId = result.documents[0].$id;
       await databases.deleteDocument(DATABASE_ID, SAVED_COLLECTION_ID, documentId);
-      console.log("🗑️ Deleted movie from saved list:", movie_id);
     } else {
       console.log(`⚠️ No saved movie found for ID ${movie_id}.`);
     }

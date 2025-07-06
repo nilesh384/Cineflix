@@ -22,6 +22,7 @@ const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSignup = async () => {
     if (!name || !email || !password) {
@@ -29,6 +30,7 @@ const Signup = () => {
     }
 
     try {
+      setLoading(true);
       await createUser(email, password, name); // Create Appwrite user
       await loginUser(email, password);        // Log them in
       const loggedInUser = await getCurrentUser(); // Fetch user details
@@ -36,6 +38,8 @@ const Signup = () => {
       router.replace('/home');                // Go to home tab
     } catch (err: any) {
       Alert.alert('Signup failed', err?.message || 'Something went wrong');
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -77,10 +81,10 @@ const Signup = () => {
         />
 
         <TouchableOpacity
-          className="bg-yellow-500 rounded-xl p-4 items-center"
+          className={`bg-yellow-500 rounded-xl p-4 items-center ${loading ? 'opacity-60' : ''}`}
           onPress={handleSignup}
         >
-          <Text className="text-white font-semibold text-lg">Sign Up</Text>
+          <Text className="text-white font-semibold text-lg">{loading ? "Signing up..." : "Sign Up" }</Text>
         </TouchableOpacity>
 
         <TouchableOpacity className="mt-6" onPress={() => router.replace('/auth/Login')}>

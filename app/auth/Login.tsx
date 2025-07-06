@@ -17,10 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Login = () => {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { setUser} = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -29,12 +30,15 @@ const Login = () => {
     }
 
     try {
+      setLoading(true);
       await loginUser(email, password);
       const currentUser = await getCurrentUser();
       setUser(currentUser);
       router.replace('/(tabs)/home');
     } catch (err: any) {
       Alert.alert('Login failed', err.message || 'Something went wrong');
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -80,10 +84,13 @@ const Login = () => {
         />
 
         <TouchableOpacity
-          className="bg-yellow-500 rounded-xl p-4 items-center"
+          disabled={loading}
+          className={`bg-yellow-500 rounded-xl p-4 items-center ${loading && 'opacity-60'}`}
           onPress={handleLogin}
         >
-          <Text className="text-white font-semibold text-lg">Login</Text>
+          <Text className="text-white font-semibold text-lg">
+            {loading ? 'Logging in...' : 'Login'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity className="mt-6" onPress={() => router.replace('/auth/Signup')}>

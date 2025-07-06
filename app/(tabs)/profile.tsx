@@ -8,16 +8,31 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "@/services/AuthContext";
-import { Redirect } from "expo-router";
-import { images } from "@/constants/images";
+import { Redirect, router } from "expo-router";
 
 export default function Profile() {
   const { user, isLoading, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
-      <Redirect href="/auth/Login" />;
-      await logout();
+      Alert.alert(
+        "Logout",
+        "Are you sure you want to logout?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Logout",
+            onPress: async () => {
+              router.push("/(tabs)/home");
+              await logout();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "Something went wrong during logout.");
@@ -40,7 +55,7 @@ export default function Profile() {
   return (
     <View className="flex-1 bg-primary items-center justify-center px-6">
       <Image
-        source={images.highlight}
+        source={{ uri: `https://api.dicebear.com/7.x/fun-emoji/png?seed=${user.name}` }}
         className="w-28 h-28 rounded-full mb-6"
         resizeMode="cover"
       />

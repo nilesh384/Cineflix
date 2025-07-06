@@ -150,7 +150,11 @@ const MovieDetails = () => {
               resizeMode="cover"
             />
           ) : (
-            <Text className="text-white text-center mt-20">Poster not available</Text>
+            <Image
+              source={{ uri: 'https://cinemaone.net/images/movie_placeholder.png' }}
+              className="w-full h-[500px]"
+              resizeMode="cover"
+            />
           )}
           {trailer?.key && (
             <TouchableOpacity

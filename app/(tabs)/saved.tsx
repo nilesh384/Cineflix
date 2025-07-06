@@ -36,7 +36,7 @@ const Saved = () => {
         keyExtractor={(item) => item.$id}
         numColumns={3}
         contentContainerStyle={{ paddingVertical: 20 }}
-        columnWrapperStyle={{ justifyContent: 'space-evenly', marginVertical: 12, }}
+        columnWrapperStyle={{ justifyContent: 'flex-start', gap:13 , marginVertical: 12, }}
         
         renderItem={({ item }) => (
           <MovieCard
