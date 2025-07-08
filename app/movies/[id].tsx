@@ -1,7 +1,7 @@
 import Carousel from 'react-native-reanimated-carousel';
-import Animated, { useSharedValue, useAnimatedStyle, interpolate } from 'react-native-reanimated';
-
-
+import { useSharedValue} from 'react-native-reanimated';
+import YoutubePlayer from "react-native-youtube-iframe";
+import { ActivityIndicator } from 'react-native';
 import {
   Dimensions,
   View,
@@ -24,10 +24,10 @@ import {
   fetchMediaImages
 } from '@/services/api';
 import { icons } from '@/constants/icons';
-import { WebView } from 'react-native-webview';
 import { useAuth } from '@/services/AuthContext';
 import { checkIfSaved, saveMovieToDB, deleteSavedMovie } from '@/services/appwrite';
 import Dot from '@/Components/Dot';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const MovieDetails = () => {
   const { id, type } = useLocalSearchParams();
@@ -40,9 +40,27 @@ const MovieDetails = () => {
   const [showTrailer, setShowTrailer] = useState(false);
   const { user, isLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const { width } = Dimensions.get('window');
   const progressValue = useSharedValue(0);
+
+  const rotateToLandscape = async () => {
+  await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+};
+
+const rotateToPortrait = async () => {
+  await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+};
+
+  useEffect(() => {
+  if (showTrailer) {
+    rotateToLandscape();
+  } else {
+    rotateToPortrait();
+  }
+}, [showTrailer]);
+
 
   useEffect(() => {
     const checkSaved = async () => {
@@ -128,29 +146,72 @@ const MovieDetails = () => {
   };
 
   return (
-    <View className="bg-primary flex-1">
-      <Modal visible={showTrailer} animationType="slide" onRequestClose={() => setShowTrailer(false)}>
-        <View style={{ flex: 1 }}>
+    <View className="bg-primary flex-1 z-100">
+      {showTrailer && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#000',
+            zIndex: 1000,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {/* Close Button */}
           <TouchableOpacity
             onPress={() => setShowTrailer(false)}
-            className="absolute top-10 right-5 z-50 bg-black/60 p-2 rounded-full"
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 20,
+              zIndex: 1010,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              padding: 10,
+              borderRadius: 30,
+            }}
           >
-            <Image source={icons.close} className="w-8 h-8" tintColor="#fff" />
+            <Image source={icons.close} style={{ width: 32, height: 32, tintColor: '#fff' }} />
           </TouchableOpacity>
-          {trailer?.key && (
-            <WebView
-              style={{ marginTop: 0, flex: 1 }}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              allowsFullscreenVideo={true}
-              allowsInlineMediaPlayback={true}
-              mediaPlaybackRequiresUserAction={false}
-              startInLoadingState={true}
-              source={{ uri: `https://www.youtube.com/embed/${trailer.key}` }}
+
+          {/* YouTube Trailer */}
+          {!isPlayerReady && (
+            <ActivityIndicator size="large" color="#fff" style={{ position: 'absolute', zIndex: 5 }} />
+          )}
+          {trailer?.key ? (
+
+            <YoutubePlayer
+              height={Dimensions.get('window').height}
+              width={Dimensions.get('window').width - 10}
+              play={true}
+              onReady={() => setIsPlayerReady(true)}
+              videoId={trailer.key}
+              onChangeState={(state: any) => {
+                if (state === 'ended') setShowTrailer(false);
+              }}
+              forceAndroidAutoplay={true}
+              webViewStyle={{ opacity: 1 }} // fixes WebView size bug on some Androids
+              initialPlayerParams={{
+                autoplay: true,
+                controls: true,
+                modestbranding: true,
+                rel: false,
+                fs: true, // show fullscreen button
+                showinfo: false, 
+                iv_load_policy: 3, // hide annotations
+              }}
             />
+          ) : (
+            <Text style={{ color: '#fff', textAlign: 'center' }}>
+              Trailer not available
+            </Text>
           )}
         </View>
-      </Modal>
+      )}
+
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View>
@@ -358,13 +419,14 @@ const MovieDetails = () => {
                   }) => (
 
                     <TouchableOpacity
+                    key={member.id}
                       className="mt-6 mb-4"
                       onPress={() => router.push({
                         pathname: '/people/[personId]',
                         params: { personId: member.id.toString() }
                       })}
                     >
-                      <View key={member.cast_id || member.id} className="items-center mr-5 w-32">
+                      <View className="items-center mr-5 w-32">
                         <Image
                           source={{
                             uri: member.profile_path

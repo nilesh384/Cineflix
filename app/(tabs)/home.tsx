@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
+  TouchableHighlight,
 } from "react-native";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
@@ -30,7 +31,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-
+  const [mediaType, setMediaType] = useState<"all" | "movie" | "tv">("all");
   const {
     data: trendingMovies,
     loading: loadingTrendingMovies,
@@ -45,7 +46,7 @@ export default function Home() {
   const loadMovies = async (reset = false) => {
     try {
       const currentPage = reset ? 1 : page;
-      const data = await fetchAll({ query: "", page: currentPage });
+      const data = await fetchAll({ query: "", page: currentPage, media_type: mediaType });
 
       if (reset) {
         setMovies(data.results);
@@ -66,7 +67,7 @@ export default function Home() {
 
   useEffect(() => {
     loadMovies(true);
-  }, []);
+  }, [mediaType]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -144,6 +145,40 @@ export default function Home() {
               )}
             </View>
 
+            <View className="flex-row mt-4 justify-center">
+                            <TouchableHighlight
+                              onPress={() => setMediaType("all")}
+                              className={`px-3 py-1 rounded-xl ${
+                                mediaType === "all"
+                                  ? "bg-accent"
+                                  : "bg-secondary"
+                              }`}
+                              underlayColor="#ccc"
+                            >
+                              <Text className="text-white">All</Text>
+                            </TouchableHighlight>
+                            <TouchableHighlight
+                              onPress={() => setMediaType("movie")}
+                              className={`px-3 py-1 rounded-xl ${
+                                mediaType === "movie"
+                                  ? "bg-accent"
+                                  : "bg-secondary"
+                              }`}
+                              underlayColor="#ccc"
+                            >
+                              <Text className="text-white">Movie</Text>
+                            </TouchableHighlight>
+                            <TouchableHighlight
+                              onPress={() => setMediaType("tv")}
+                              className={`px-3 py-1 rounded-xl ml-2 ${
+                                mediaType === "tv" ? "bg-accent" : "bg-secondary"
+                              }`}
+                              underlayColor="#ccc"
+                            >
+                              <Text className="text-white">TV</Text>
+                            </TouchableHighlight>
+                          </View>
+
             <Text className="text-white text-lg font-bold mt-6 mb-3">
               Popular Movies
             </Text>
@@ -151,16 +186,27 @@ export default function Home() {
         }
         scrollEnabled={true}
         data={movies}
-        renderItem={({ item }) => (
-          <MovieCard
-            id={item.id}
-            poster_path={item.poster_path}
-            title={item.title || item.name || "Untitled"}
-            vote_average={item.vote_average}
-            release_date={item.release_date || item.first_air_date || ""}
-            media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
-          />
-        )}
+        renderItem={({ item }) =>
+          mediaType === "movie" ? (
+            <MovieCard
+              id={item.id}
+              poster_path={item.poster_path}
+              title={item.title || item.name || "Untitled"}
+              vote_average={item.vote_average}
+              release_date={item.release_date || item.first_air_date || ""}
+              media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
+            />
+          ) : (
+            <MovieCard
+              id={item.id}
+              poster_path={item.poster_path}
+              title={item.title || item.name || "Untitled"}
+              vote_average={item.vote_average}
+              release_date={item.release_date || item.first_air_date || ""}
+              media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
+            />
+          )
+        }
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         columnWrapperStyle={{

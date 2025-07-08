@@ -159,7 +159,7 @@ const PersonDetails = () => {
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
                                         id={item.id}
-                                        key={item.id}
+                                        key={`${item.id}-movie`}
                                         poster_path={item.poster_path || ''}
                                         title={item.title}
                                         vote_average={item.vote_average}
@@ -179,7 +179,7 @@ const PersonDetails = () => {
 
                         <FlatList
                             data={personTvCredits.slice(0, 15)}
-                            keyExtractor={(item) => `${item.id}-tv`}
+                            keyExtractor={(item) => item.id.toString()}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -187,7 +187,7 @@ const PersonDetails = () => {
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
                                         id={item.id}
-                                        key={item.id}
+                                        key={`${item.id}-tv`}
                                         poster_path={item.poster_path || ''}
                                         title={item.name}
                                         vote_average={item.vote_average}

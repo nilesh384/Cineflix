@@ -2,16 +2,17 @@ import MovieCard from "@/Components/MovieCard";
 import SearchBar from "@/Components/SearchBar";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
-import { fetchAll } from "@/services/api";
+import { fetchAll, fetchAllPersons } from "@/services/api";
 import { updateSeachCount } from "@/services/appwrite";
 import { useAuth } from "@/services/AuthContext";
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
   Text,
+  TouchableHighlight,
   View,
 } from "react-native";
 
@@ -22,9 +23,14 @@ export default function Search() {
   if (isLoading) return null;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [movies, setMovies] = useState<Movie[]>([]);
+  // Define a union type for Movie or Person
+  type SearchResult = Movie & { media_type: string } | { id: number; name: string; profile_path?: string; media_type: "person" };
+
+  const [movies, setMovies] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
+
+  const [mediaType, setMediaType] = useState<"entertainment" | "person">("entertainment");
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
@@ -32,8 +38,14 @@ export default function Search() {
         try {
           setLoading(true);
           setError(null);
-          const data = await fetchAll({ query: searchQuery });
-          setMovies(data.results || []);
+          if (mediaType === "entertainment") {
+            const data = await fetchAll({ query: searchQuery });
+            setMovies(data.results || []);
+          } else {
+            const data = await fetchAllPersons({ query: searchQuery });
+            setMovies(data.results || []);
+          }
+          
         } catch (err: any) {
           setError(err);
         } finally {
@@ -45,16 +57,19 @@ export default function Search() {
     }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchQuery]);
+  }, [searchQuery, mediaType]);
 
   // Optional: log to Appwrite
   useEffect(() => {
     if (searchQuery.trim() && movies.length > 0) {
+      const firstMovie = (movies[0] as any).media_type === "movie" || (movies[0] as any).media_type === "tv"
+        ? movies[0] as Movie
+        : undefined;
       updateSeachCount(
         searchQuery,
-        movies[0],
-        movies[0]?.media_type === "movie" || movies[0]?.media_type === "tv"
-          ? movies[0].media_type
+        firstMovie,
+        (movies[0] as any).media_type === "movie" || (movies[0] as any).media_type === "tv"
+          ? (movies[0] as any).media_type
           : "movie"
       );
     }
@@ -86,8 +101,31 @@ export default function Search() {
             <SearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search from 1000+ movies"
+              placeholder="Search  movies / tv shows / people"
             />
+              
+              <View className="flex-row mt-4 justify-center">
+                <TouchableHighlight
+                  onPress={() => setMediaType("entertainment")}
+                  className={`px-3 py-1 rounded-xl ${
+                    mediaType === "entertainment"
+                      ? "bg-accent"
+                      : "bg-secondary"
+                  }`}
+                  underlayColor="#ccc"
+                >
+                  <Text className="text-white">Entertainment</Text>
+                </TouchableHighlight>
+                <TouchableHighlight
+                  onPress={() => setMediaType("person")}
+                  className={`px-3 py-1 rounded-xl ml-2 ${
+                    mediaType === "person" ? "bg-accent" : "bg-secondary"
+                  }`}
+                  underlayColor="#ccc"
+                >
+                  <Text className="text-white">Person</Text>
+                </TouchableHighlight>
+              </View>
             {loading && (
               <ActivityIndicator
                 size="large"
@@ -110,16 +148,53 @@ export default function Search() {
             )}
           </View>
         }
-        renderItem={({ item }) => (
-          <MovieCard
-            id={item.id}
-            poster_path={item.poster_path}
-            title={item.title || item.name || "Untitled"}
-            vote_average={item.vote_average}
-            release_date={item.release_date || item.first_air_date || ""}
-            media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
-          />
-        )}
+        renderItem={({ item }) => {
+
+          if (item.media_type === "person") {
+            return (
+              <TouchableHighlight
+                onPress={() => router.push(`/people/${item.id}`)}
+                className="mb-8 w-28"
+                underlayColor="transparent"
+              >
+                <View className="items-center">
+                  <Image
+                    source={{
+                      uri: "profile_path" in item && item.profile_path
+                        ? `https://image.tmdb.org/t/p/w185${item.profile_path}`
+                        : "https://via.placeholder.com/185x278?text=No+Image",
+                    }}
+                    className="w-[7.5rem] h-44 rounded-xl mb-2"
+                    resizeMode="cover"
+                  />
+                  <Text className="text-white text-center text-xs font-semibold mt-1" numberOfLines={2}>
+                    {item.name}
+                  </Text>
+                </View>
+              </TouchableHighlight>
+
+            );
+          }
+
+          return (
+            <MovieCard
+              id={item.id}
+              poster_path={
+                item.media_type === "movie" || item.media_type === "tv"
+                  ? (item as Movie).poster_path || ""
+                  : ""
+              }
+              title={"title" in item ? item.title || "Untitled" : item.name || "Untitled"}
+              vote_average={"vote_average" in item ? item.vote_average : 0}
+              release_date={
+                "release_date" in item
+                  ? item.release_date || (item as any).first_air_date || ""
+                  : ""
+              }
+              media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
+            />
+          );
+        }}
         ListEmptyComponent={
           !loading && !error && searchQuery.trim() ? (
             <View>
