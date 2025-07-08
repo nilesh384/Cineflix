@@ -98,11 +98,19 @@ export default function Search() {
               className="w-24 h-16 z-10 mt-24 self-center"
               resizeMode="contain"
             />
-            <SearchBar
+            {mediaType === "entertainment" ? (
+              <SearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search  movies / tv shows / people"
+              placeholder="Search  movies / tv shows .."
             />
+            ):(
+              <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search for people .."
+            />
+            )}
               
               <View className="flex-row mt-4 justify-center">
                 <TouchableHighlight

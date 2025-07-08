@@ -86,7 +86,7 @@ const PersonDetails = () => {
                         {/* Dot indicators */}
                         <View className="absolute bottom-4 left-0 right-0 flex-row justify-center items-center space-x-2 z-10">
                             {personPictures.slice(0, 10).map((_: PersonPicture, i: number) => (
-                                <Dot key={i} index={i} progressValue={progressValue} />
+                                <Dot key={`${i}-dot`} index={i} progressValue={progressValue} />
                             ))}
 
                         </View>
@@ -104,7 +104,7 @@ const PersonDetails = () => {
                 )}
 
                 {person.deathday && (
-                    <View className="bg-red-500 p-2 rounded-lg mb-4">
+                    <View className="bg-red-500 p-2 rounded-lg mb-4 mt-3">
                         <Text className="text-white text-center">
                             {`Sadly, ${person.name} passed away on `}
                             <Text className="font-bold">
@@ -151,7 +151,7 @@ const PersonDetails = () => {
 
                         <FlatList
                             data={personMovies.slice(0, 15)}
-                            keyExtractor={(item) => item.id.toString()}
+                            keyExtractor={(item) => `${item.id}-${item.release_date}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -159,7 +159,7 @@ const PersonDetails = () => {
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
                                         id={item.id}
-                                        key={`${item.id}-movie`}
+                                        key={item.vote_average}
                                         poster_path={item.poster_path || ''}
                                         title={item.title}
                                         vote_average={item.vote_average}
@@ -179,7 +179,7 @@ const PersonDetails = () => {
 
                         <FlatList
                             data={personTvCredits.slice(0, 15)}
-                            keyExtractor={(item) => item.id.toString()}
+                            keyExtractor={(item) => `${item.id}-${item.first_air_date}-${item.name}-${item.vote_average}-${item.character}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -187,7 +187,7 @@ const PersonDetails = () => {
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
                                         id={item.id}
-                                        key={`${item.id}-tv`}
+                                        
                                         poster_path={item.poster_path || ''}
                                         title={item.name}
                                         vote_average={item.vote_average}

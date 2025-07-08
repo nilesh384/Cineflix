@@ -157,9 +157,10 @@ export default function Home() {
                             >
                               <Text className="text-white">All</Text>
                             </TouchableHighlight>
+
                             <TouchableHighlight
                               onPress={() => setMediaType("movie")}
-                              className={`px-3 py-1 rounded-xl ${
+                              className={`px-3 py-1 rounded-xl ml-2 ${
                                 mediaType === "movie"
                                   ? "bg-accent"
                                   : "bg-secondary"

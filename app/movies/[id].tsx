@@ -166,8 +166,8 @@ const rotateToPortrait = async () => {
             onPress={() => setShowTrailer(false)}
             style={{
               position: 'absolute',
-              top: 40,
-              right: 20,
+              top: 20,
+              right: 25,
               zIndex: 1010,
               backgroundColor: 'rgba(0,0,0,0.6)',
               padding: 10,

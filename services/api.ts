@@ -14,7 +14,7 @@ export const fetchAll = async ({
 }: {
   query: string;
   page?: number;
-  media_type?: "all" | "movie" | "tv"; 
+  media_type?: "all" | "movie" | "tv";
 }) => {
   const endpoint = query
     ? `${TMDB_CONFIG.BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=true&page=${page}`
@@ -33,7 +33,8 @@ export const fetchAll = async ({
     const data = await response.json();
 
     const filteredResults = data.results
-?.sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0)); // DESC order
+      ?.filter((item: any) => item.media_type === "movie" || item.media_type === "tv")
+      ?.sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0)); // DESC order
 
     return { ...data, results: filteredResults };
   } catch (error) {
@@ -42,14 +43,14 @@ export const fetchAll = async ({
   }
 };
 
-export const fetchAllPersons  = async ({
+export const fetchAllPersons = async ({
   query,
   page = 1,
 }: {
   query: string;
   page?: number;
 }) => {
-  const endpoint =  `${TMDB_CONFIG.BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=true&page=${page}`
+  const endpoint = `${TMDB_CONFIG.BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=true&page=${page}`;
 
   try {
     const response = await fetch(endpoint, {
@@ -64,10 +65,7 @@ export const fetchAllPersons  = async ({
     const data = await response.json();
 
     const filteredResults = data.results
-      ?.filter(
-        (item: any) =>
-          item.media_type === "person"
-      )
+      ?.filter((item: any) => item.media_type === "person")
       ?.sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0)); // DESC order
 
     return { ...data, results: filteredResults };
