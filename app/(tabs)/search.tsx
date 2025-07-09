@@ -15,6 +15,7 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Search() {
   const { user, isLoading } = useAuth();
@@ -76,7 +77,8 @@ export default function Search() {
   }, [movies]);
 
   return (
-    <View className="bg-primary flex-1">
+    <SafeAreaView className="flex-1 bg-primary">
+      <View className="bg-primary flex-1">
       <Image source={images.bg} className="absolute w-full h-full z-0" />
 
       <FlatList
@@ -94,8 +96,8 @@ export default function Search() {
         ListHeaderComponent={
           <View>
             <Image
-              source={icons.logo}
-              className="w-24 h-16 z-10 mt-24 self-center"
+              source={images.logo_2}
+              className="w-96 h-60 z-10 mt-16 -mb-20 self-center"
               resizeMode="contain"
             />
             {mediaType === "entertainment" ? (
@@ -220,5 +222,6 @@ export default function Search() {
         showsVerticalScrollIndicator={false}
       />
     </View>
+    </SafeAreaView>
   );
 }

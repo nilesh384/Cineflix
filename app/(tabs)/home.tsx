@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   TouchableHighlight,
 } from "react-native";
-import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import MovieCard from "@/Components/MovieCard";
 import TrendingCard from "@/Components/TrendingCard";
@@ -22,6 +21,7 @@ import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import { useAuth } from "@/services/AuthContext";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
 
@@ -113,7 +113,8 @@ export default function Home() {
   };
 
   return (
-    <View className="bg-primary flex-1">
+    <SafeAreaView className="flex-1 bg-primary">
+      <View className="bg-primary flex-1">
       <Image source={images.bg} className="absolute w-full h-full z-0" />
 
 
@@ -138,13 +139,13 @@ export default function Home() {
             )}
 
             <Image
-              source={icons.logo}
-              className="w-24 h-16 z-10 mt-24 self-center"
+              source={images.logo_2}
+              className="w-96 h-60 z-10 mt-16 self-center"
               resizeMode="contain"
             />
 
             {/* Trending */}
-            <View className="mt-10">
+            <View className="mt-4">
               <Text className="text-lg text-white font-bold mb-3">
                 Trending Movies
               </Text>
@@ -343,5 +344,6 @@ export default function Home() {
         </Text>
       )}
     </View>
+    </SafeAreaView>
   );
 }

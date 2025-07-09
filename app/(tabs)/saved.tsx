@@ -6,6 +6,7 @@ import MovieCard from '@/Components/MovieCard';
 import { icons } from '@/constants/icons';
 import { Redirect } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Saved = () => {
   const { user, isLoading } = useAuth();
@@ -30,7 +31,8 @@ const Saved = () => {
   if (!user && !isLoading) return <Redirect href="/auth/Login" />;
 
   return (
-    <View className="flex-1 bg-primary px-4 pt-5">
+    <SafeAreaView className="flex-1 bg-primary">
+      <View className="flex-1 bg-primary px-4 pt-5">
       <FlatList
         data={savedMovies}
         keyExtractor={(item) => item.$id}
@@ -58,6 +60,7 @@ const Saved = () => {
         }
       />
     </View>
+    </SafeAreaView>
   );
 };
 

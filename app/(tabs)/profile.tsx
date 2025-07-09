@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useAuth } from "@/services/AuthContext";
 import { Redirect, router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
   const { user, isLoading, logout } = useAuth();
@@ -53,7 +54,8 @@ export default function Profile() {
   }
 
   return (
-    <View className="flex-1 bg-primary items-center justify-center px-6">
+    <SafeAreaView className="flex-1 bg-primary">
+      <View className="flex-1 bg-primary items-center justify-center px-6">
       <Image
         source={{ uri: `https://api.dicebear.com/7.x/fun-emoji/png?seed=${user.name}` }}
         className="w-28 h-28 rounded-full mb-6"
@@ -85,5 +87,6 @@ export default function Profile() {
         <Text className="text-white font-semibold text-base">Logout</Text>
       </TouchableOpacity>
     </View>
+    </SafeAreaView>
   );
 }
