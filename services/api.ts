@@ -33,7 +33,9 @@ export const fetchAll = async ({
     const data = await response.json();
 
     const filteredResults = data.results
-      ?.filter((item: any) => item.media_type === "movie" || item.media_type === "tv")
+      ?.filter(
+        (item: any) => item.media_type === "movie" || item.media_type === "tv"
+      )
       ?.sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0)); // DESC order
 
     return { ...data, results: filteredResults };
@@ -268,6 +270,53 @@ export const fetchPersonTvCredits = async (
     }));
   } catch (err) {
     console.error("TV credits fetch failed:", err);
+    return [];
+  }
+};
+
+export const getGenres = async (type: "movie" | "tv") => {
+  try {
+    const res = await fetch(`${TMDB_CONFIG.BASE_URL}/genre/${type}/list`, {
+      headers: TMDB_CONFIG.headers,
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch genres");
+
+    const data = await res.json();
+    return data.genres || [];
+  } catch (err) {
+    console.error("Genres fetch failed:", err);
+    return [];
+  }
+};
+
+export const fetchLists = async ({
+  type = "movie",
+  movieList = "popular",
+  tvList = "popular",
+  page = 1,
+}: {
+  type: "movie" | "tv";
+  movieList?: "popular" | "top_rated" | "upcoming" | "now_playing";
+  tvList?: "popular" | "top_rated" | "on_the_air" | "airing_today";
+  page?: number;
+}) => {
+  const list = type === "movie" ? movieList : tvList;
+
+  try {
+    const res = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/${type}/${list}?page=${page}`,
+      {
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch lists");
+
+    const data = await res.json();
+    return Array.isArray(data.results) ? data.results : [];
+  } catch (err) {
+    console.error("Lists fetch failed:", err);
     return [];
   }
 };

@@ -47,7 +47,7 @@ export const updateSeachCount = async (
           count: (existingMovie.count || 0) + 1,
         }
       );
-      console.log("🔁 Updated search count:", existingMovie.searchTerm);
+      
     } else {
       const rawTitle = type === 'movie' ? movie.title : movie.name;
 const title = rawTitle?.trim() || "Untitled"; // fallback if missing or empty
@@ -67,7 +67,7 @@ await databases.createDocument(DATABASE_ID, TRENDING_COLLECTION_ID, ID.unique(),
 });
 
 
-      console.log("🆕 Created new search record:", query);
+      
     }
   } catch (error) {
     console.error("❌ Appwrite Error:", error);
@@ -133,7 +133,7 @@ export const getSavedMovies = async (userId: string) => {
     const res = await databases.listDocuments(DATABASE_ID, SAVED_COLLECTION_ID, [
       Query.equal('userId', userId),
     ]);
-    console.log("📦 Saved movies:", res.documents.length);
+    
     return res.documents.sort((a, b) => {
       const dateA = new Date(a.$createdAt).getTime();
       const dateB = new Date(b.$createdAt).getTime();

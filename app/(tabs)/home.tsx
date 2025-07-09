@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { Picker } from '@react-native-picker/picker';
+
 import {
   View,
   Text,
@@ -15,7 +17,7 @@ import MovieCard from "@/Components/MovieCard";
 import TrendingCard from "@/Components/TrendingCard";
 import SkeletonTrendingCard from "@/Components/SkeletonTrendingCard";
 import SkeletonMovieCard from "@/Components/SkeletonMovieCard";
-import { fetchAll } from "@/services/api";
+import { fetchAll, fetchLists } from "@/services/api";
 import { getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/useFetch";
 import { useAuth } from "@/services/AuthContext";
@@ -32,6 +34,14 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [mediaType, setMediaType] = useState<"all" | "movie" | "tv">("all");
+  const [selectedMovieList, setSelectedMovieList] = useState<'popular' | 'upcoming' | 'top_rated' | 'now_playing'>('popular');
+  const [selectedTvList, setSelectedTvList] = useState<"popular" | "on_the_air" | "top_rated" | "airing_today">("popular");
+
+  
+
+  const [loading, setLoading] = useState(true);
+  const flatListRef = useRef<FlatList>(null);
+
   const {
     data: trendingMovies,
     loading: loadingTrendingMovies,
@@ -44,26 +54,45 @@ export default function Home() {
     : [];
 
   const loadMovies = async (reset = false) => {
-    try {
-      const currentPage = reset ? 1 : page;
-      const data = await fetchAll({ query: "", page: currentPage, media_type: mediaType });
+  try {
+    const currentPage = reset ? 1 : page;
+    let data;
 
-      if (reset) {
-        setMovies(data.results);
-      } else {
-        setMovies((prev) => [...prev, ...data.results]);
-      }
-
-      setHasMore(currentPage < data.total_pages);
-      setPage(currentPage + 1);
-    } catch (err) {
-      console.error("Failed to load movies:", err);
-    } finally {
-      setInitialLoading(false);
-      setLoadingMore(false);
-      if (reset) setRefreshing(false);
+    if (mediaType === "all") {
+      const res = await fetchAll({ query: "", page: currentPage, media_type: "all" });
+      data = res?.results ?? [];
+    } else if (mediaType === "movie") {
+      data = await fetchLists({
+        type: "movie",
+        movieList: selectedMovieList, 
+        page: currentPage,
+      });
+    } else {
+      data = await fetchLists({
+        type: "tv",
+        tvList: selectedTvList, 
+        page: currentPage,
+      });
     }
-  };
+
+    if (reset) {
+      setMovies(data);
+    } else {
+      setMovies((prev) => [...prev, ...data]);
+    }
+
+    setHasMore(data.length > 0);
+    setPage(currentPage + 1);
+  } catch (err) {
+    console.error("Failed to load movies:", err);
+  } finally {
+    setInitialLoading(false);
+    setLoadingMore(false);
+    if (reset) setRefreshing(false);
+  }
+};
+
+
 
   useEffect(() => {
     loadMovies(true);
@@ -93,19 +122,19 @@ export default function Home() {
           <>
 
             {user && (
-              <TouchableOpacity onPress={() => { router.push("/profile") } } className="z-10 " >
-              <Image
-                source={
-                  user?.name
-                    ? { uri: `https://api.dicebear.com/7.x/fun-emoji/png?seed=${user.name}` }
-                    : { uri: "https://api.dicebear.com/7.x/fun-emoji/png?seed=default" }
-                }
-                className="w-10 h-10 rounded-full mb-6 absolute top-6 right-1 z-10 border-white border-2"
-                resizeMode="cover"
+              <TouchableOpacity onPress={() => { router.push("/profile") }} className="z-10 " >
+                <Image
+                  source={
+                    user?.name
+                      ? { uri: `https://api.dicebear.com/7.x/fun-emoji/png?seed=${user.name}` }
+                      : { uri: "https://api.dicebear.com/7.x/fun-emoji/png?seed=default" }
+                  }
+                  className="w-10 h-10 rounded-full mb-6 absolute top-6 right-1 z-10 border-white border-2"
+                  resizeMode="cover"
 
-              />
+                />
 
-            </TouchableOpacity>
+              </TouchableOpacity>
             )}
 
             <Image
@@ -145,69 +174,131 @@ export default function Home() {
               )}
             </View>
 
-            <View className="flex-row mt-4 justify-center">
-                            <TouchableHighlight
-                              onPress={() => setMediaType("all")}
-                              className={`px-3 py-1 rounded-xl ${
-                                mediaType === "all"
-                                  ? "bg-accent"
-                                  : "bg-secondary"
-                              }`}
-                              underlayColor="#ccc"
-                            >
-                              <Text className="text-white">All</Text>
-                            </TouchableHighlight>
+            <View className="flex-row mt-4 items-center justify-center gap-4">
+              <TouchableHighlight
+                onPress={() => setMediaType("all")}
+                className={`px-3 py-1 rounded-xl ${mediaType === "all"
+                  ? "bg-accent"
+                  : "bg-secondary"
+                  }`}
+                underlayColor="#ccc"
+              >
+                <Text className="text-white text-lg">All</Text>
+              </TouchableHighlight>
 
-                            <TouchableHighlight
-                              onPress={() => setMediaType("movie")}
-                              className={`px-3 py-1 rounded-xl ml-2 ${
-                                mediaType === "movie"
-                                  ? "bg-accent"
-                                  : "bg-secondary"
-                              }`}
-                              underlayColor="#ccc"
-                            >
-                              <Text className="text-white">Movie</Text>
-                            </TouchableHighlight>
-                            <TouchableHighlight
-                              onPress={() => setMediaType("tv")}
-                              className={`px-3 py-1 rounded-xl ml-2 ${
-                                mediaType === "tv" ? "bg-accent" : "bg-secondary"
-                              }`}
-                              underlayColor="#ccc"
-                            >
-                              <Text className="text-white">TV</Text>
-                            </TouchableHighlight>
-                          </View>
+              <TouchableHighlight
+                onPress={() => setMediaType("movie")}
+                className={`px-3 py-1 rounded-xl ml-2 ${mediaType === "movie"
+                  ? "bg-accent"
+                  : "bg-secondary"
+                  }`}
+                underlayColor="#ccc"
+              >
+                <Text className="text-white text-lg">Movie</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                onPress={() => setMediaType("tv")}
+                className={`px-3 py-1 rounded-xl ml-2 ${mediaType === "tv" ? "bg-accent" : "bg-secondary"
+                  }`}
+                underlayColor="#ccc"
+              >
+                <Text className="text-white text-lg">TV</Text>
+              </TouchableHighlight>
+            </View>
 
-            <Text className="text-white text-lg font-bold mt-6 mb-3">
-              Popular Movies
-            </Text>
+            {mediaType === "movie" && (
+              <View className="mt-6">
+
+                {/* Dropdown Selector */}
+                <View className="bg-secondary/70 rounded-xl px-3 py-1 mx-6">
+                  <Picker
+                    selectedValue={selectedMovieList}
+                    dropdownIconColor="white"
+                    style={{ color: 'white' }}
+                    onValueChange={async (itemValue) => {
+                      setSelectedMovieList(itemValue);
+                      setLoading(true);
+                      setPage(1); // Reset page for new list
+                      setHasMore(true); // Reset hasMore for new list
+
+                      const listData = await fetchLists({
+                        type: "movie",
+                        movieList: itemValue,
+                        page: page,
+                      });
+
+                      setMovies(Array.isArray(listData) ? listData : []);
+                      setLoading(false);
+                      flatListRef.current?.scrollToOffset({ animated: true, offset: 0 }); // Smooth scroll
+                    }}
+                  >
+                    <Picker.Item label="🔥 Popular" value="popular" />
+                    <Picker.Item label="⭐ Top Rated" value="top_rated" />
+                    <Picker.Item label="⏳ Upcoming" value="upcoming" />
+                    <Picker.Item label="🎬 Now Playing" value="now_playing" />
+                  </Picker>
+                </View>
+              </View>
+            )}
+
+            {mediaType === "tv" && (
+              <View className="mt-6">
+
+                {/* Dropdown Selector */}
+                <View className="bg-secondary/70 rounded-xl px-3 py-1 mx-6">
+                  <Picker
+                    selectedValue={selectedTvList}
+                    dropdownIconColor="white"
+                    style={{ color: 'white' }}
+                    onValueChange={async (itemValue) => {
+                      setSelectedTvList(itemValue);
+                      setLoading(true);
+                      setPage(1); // Reset page for new list
+                      setHasMore(true); // Reset hasMore for new list
+
+                      const listData = await fetchLists({
+                        type: "tv",
+                        tvList: itemValue,
+                        page: page,
+                      });
+                      const safeList = (data: any) => Array.isArray(data) ? data : [];
+                      setMovies(safeList(listData));
+                      setLoading(false);
+                      flatListRef.current?.scrollToOffset({ animated: true, offset: 0 }); // Smooth scroll
+                    }}
+                  >
+                    <Picker.Item label="🔥 Popular" value="popular" />
+                    <Picker.Item label="⭐ Top Rated" value="top_rated" />
+                    <Picker.Item label="⏳ On the Air" value="on_the_air" />
+                    <Picker.Item label="🎬 Airing Today" value="airing_today" />
+                  </Picker>
+                </View>
+              </View>
+            )}
+
+
           </>
         }
         scrollEnabled={true}
         data={movies}
-        renderItem={({ item }) =>
-          mediaType === "movie" ? (
+        renderItem={({ item }) => {
+          // Determine the correct media_type for MovieCard
+          let cardMediaType: "movie" | "tv" = "movie";
+          if (mediaType === "tv") cardMediaType = "tv";
+          else if (mediaType === "movie") cardMediaType = "movie";
+          else if ('media_type' in item && (item.media_type === "movie" || item.media_type === "tv")) cardMediaType = item.media_type;
+
+          return (
             <MovieCard
               id={item.id}
               poster_path={item.poster_path}
               title={item.title || item.name || "Untitled"}
               vote_average={item.vote_average}
               release_date={item.release_date || item.first_air_date || ""}
-              media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
+              media_type={cardMediaType}
             />
-          ) : (
-            <MovieCard
-              id={item.id}
-              poster_path={item.poster_path}
-              title={item.title || item.name || "Untitled"}
-              vote_average={item.vote_average}
-              release_date={item.release_date || item.first_air_date || ""}
-              media_type={item.media_type === "movie" || item.media_type === "tv" ? item.media_type : "movie"} // Default to 'movie' if not provided
-            />
-          )
-        }
+          );
+        }}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         columnWrapperStyle={{
@@ -215,6 +306,7 @@ export default function Home() {
           gap: 13,
           paddingHorizontal: 2,
           marginBottom: 10,
+          marginTop: 20,
         }}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

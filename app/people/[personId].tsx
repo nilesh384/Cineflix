@@ -6,7 +6,6 @@ import {
     Image,
     ScrollView,
     TouchableOpacity,
-    Linking,
     ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -144,17 +143,33 @@ const PersonDetails = () => {
                     </>
                 )}
 
+                {/* Homepage */}
+                {person.homepage && (
+                    <TouchableOpacity
+                        onPress={() => router.push({
+                            pathname: "/webview",
+                            params: { url: encodeURIComponent(person.homepage!), title: encodeURIComponent(`${person.name}'s Homepage`) }
+                        })}
+                        className="mb-10"
+                    >
+                        <Text className="text-center text-blue-700 italic font-bold text-base mt-8">Visit Actors Homepage -{'>'}</Text>
+                    </TouchableOpacity>
+                )}
+
+
                 {personMovies && personMovies.length > 0 && (
                     <View className="mt-6">
-                        <Text className="text-white text-base font-semibold mb-2">Acted In</Text>
-                        <Text className="text-gray-400 text-sm mb-4">[MOVIES]</Text>
+                        <View className='flex-row  justify-start mb-2'>
+                            <Text className="text-white text-base font-semibold mb-2">Acted In   </Text>
+                            <Text className="text-gray-400 text-base mb-4">[MOVIES]</Text>
+                        </View>
 
                         <FlatList
                             data={personMovies.slice(0, 15)}
                             keyExtractor={(item) => `${item.id}-${item.release_date}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ paddingHorizontal: 20 }}
+                            contentContainerStyle={{ paddingHorizontal: 0 }}
                             renderItem={({ item }) => (
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
@@ -174,20 +189,22 @@ const PersonDetails = () => {
 
                 {personTvCredits && personTvCredits.length > 0 && (
                     <View className="mt-6">
-                        <Text className="text-white text-base font-semibold mb-2">Acted In</Text>
-                        <Text className="text-gray-400 text-sm mb-4">[TV / WEB SERIES]</Text>
+                        <View className='flex-row  justify-start mb-2'>
+                            <Text className="text-white text-base font-semibold mb-2">Acted In   </Text>
+                            <Text className="text-gray-400 text-base mb-4">[TV / WEB SERIES]</Text>
+                        </View>
 
                         <FlatList
                             data={personTvCredits.slice(0, 15)}
                             keyExtractor={(item) => `${item.id}-${item.first_air_date}-${item.name}-${item.vote_average}-${item.character}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ paddingHorizontal: 20 }}
+                            contentContainerStyle={{ paddingHorizontal: 0 }}
                             renderItem={({ item }) => (
                                 <View className="mr-4 w-32 mb-16  overflow-hidden  shadow-lg shadow-black/40">
                                     <MovieCard
                                         id={item.id}
-                                        
+
                                         poster_path={item.poster_path || ''}
                                         title={item.name}
                                         vote_average={item.vote_average}
@@ -202,15 +219,6 @@ const PersonDetails = () => {
 
 
 
-                {/* Homepage */}
-                {person.homepage && (
-                    <TouchableOpacity
-                        onPress={() => Linking.openURL(person.homepage!)}
-                        className="mb-16"
-                    >
-                        <Text className="text-center text-blue-700 italic font-bold text-base">Visit Homepage -{'>'}</Text>
-                    </TouchableOpacity>
-                )}
 
 
 
