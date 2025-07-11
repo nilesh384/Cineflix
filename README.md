@@ -19,14 +19,6 @@
 
 ---
 
-## 📱 Screenshots
-
-| Home | Movie Details | Cast Details | Search | Filters |
-|------|---------|----------------|-------|
-| *(Add screenshots or GIFs)* | *(Add screenshots)* | *(Add screenshots)* | *(Add screenshots)* |
-
----
-
 ## ⚙️ Tech Stack
 
 - **React Native** (with **Expo**)
@@ -42,20 +34,22 @@
 
 ### 1. Clone the Repo
 
-```bash
-git clone https://github.com/nilesh384/Popcorn-Play.git
-cd Popcorn-Play
-
+   ```bash
+   git clone https://github.com/nilesh384/Popcorn-Play.git
+   ```
+   ```bash
+   cd Popcorn-Play
+   ```
 
 ## Get started
 
-1. Install dependencies
+### 2. Install dependencies
 
    ```bash
    npm install
    ```
 
-3. Create a .env file in the root:
+### 3. Create a .env file in the root:
 
 
 TMDB_API_KEY=your_tmdb_api_key
@@ -66,20 +60,11 @@ APPWRITE_COLLECTION_ID=your_collection_id
 APPWRITE_BUCKET_ID=your_bucket_id
 
 
-4. 🗂️ Folder Structure
+### 4. 🗂️ Folder Structure
 
-Popcorn-Play/
-├── app/                   # Screens, routes
-├── assets/                # Fonts, images, icons
-├── components/            # Reusable UI elements
-├── constants/             # Colors, icons, images
-├── services/              # API integrations (TMDb + Appwrite)
-├── utils/                 # Helpers and utilities
-├── .env                   # Environment variables
-└── App.js                 # Entry point
+<pre lang="markdown"> ```bash Popcorn-Play/ ├── app/ # Screens, routes ├── assets/ # Fonts, images, icons ├── components/ # Reusable UI elements ├── constants/ # Colors, icons, images ├── services/ # API integrations (TMDb + Appwrite) ├── utils/ # Helpers and utilities ├── .env # Environment variables └── App.js # Entry point ``` </pre>
 
-
-5. Start the app
+### 5. Start the app
 
    ```bash
    npx expo start
