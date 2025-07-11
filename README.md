@@ -62,9 +62,14 @@ APPWRITE_BUCKET_ID=your_bucket_id
 
 ### 4. 🗂️ Folder Structure
 
-   ```bash 
-   Popcorn-Play/ ├── app/ # Screens, routes ├── assets/ # Fonts, images, icons ├── components/ # Reusable UI elements ├── constants/ # Colors, icons, images ├── services/ # API integrations (TMDb + Appwrite) ├── utils/ # Helpers and utilities ├── .env # Environment variables └── App.js # Entry point 
-   ``` 
+```bash
+Popcorn-Play/
+├── screenshots/
+│   ├── home.png
+│   ├── details.png
+│   ├── trailer.png
+│   └── login.png
+```
 
 ### 5. Start the app
 
