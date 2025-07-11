@@ -70,7 +70,7 @@ const PersonDetails = () => {
                             loop
                             autoPlay
                             scrollAnimationDuration={1000}
-                            onProgressChange={(_, absoluteProgress) =>
+                            onProgressChange={(_:number, absoluteProgress:number) =>
                                 (progressValue.value = absoluteProgress)
                             }
                             renderItem={({ item }: { item: { file_path: string } }) => (

@@ -320,3 +320,29 @@ export const fetchLists = async ({
     return [];
   }
 };
+
+export const fetchTvSeasonDetails = async (
+  id: string,
+  seasonNumber: number
+): Promise<any> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/${id}/season/${seasonNumber}`,
+      {
+        method: "GET",
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Network error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    const errText = await error?.response?.text?.();
+    console.log("Fetch failed:", errText || error);
+    throw error;
+  }
+}

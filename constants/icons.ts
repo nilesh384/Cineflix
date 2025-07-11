@@ -8,6 +8,7 @@ import star from "@/assets/icons/star.png";
 import play from "@/assets/icons/play.png";
 import arrow from "@/assets/icons/arrow.png";
 import close from "@/assets/icons/close.png";
+import movieIcon from "@/assets/icons/movieIcon.png";
 
 export const icons = {
   home,
@@ -20,4 +21,5 @@ export const icons = {
   play,
   arrow,
   close,
+  movieIcon,
 };

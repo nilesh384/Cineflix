@@ -1,5 +1,5 @@
 import Carousel from 'react-native-reanimated-carousel';
-import { useSharedValue} from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import YoutubePlayer from "react-native-youtube-iframe";
 import { ActivityIndicator } from 'react-native';
 import {
@@ -21,7 +21,8 @@ import {
   fetchMediaDetails,
   fetchTrailer,
   fetchWatchProviders,
-  fetchMediaImages
+  fetchMediaImages,
+  fetchTvSeasonDetails
 } from '@/services/api';
 import { icons } from '@/constants/icons';
 import { useAuth } from '@/services/AuthContext';
@@ -41,25 +42,57 @@ const MovieDetails = () => {
   const { user, isLoading } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [moviePlayer, setMoviePlayer] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<number | null>(null);
+  const [episodes, setEpisodes] = useState<any[]>([]);
+
 
   const { width } = Dimensions.get('window');
   const progressValue = useSharedValue(0);
 
-  const rotateToLandscape = async () => {
-  await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+  const handleSeasonSelect = async (seasonNumber: number) => {
+  try {
+    setSelectedSeason(seasonNumber);
+    setSelectedEpisode(null); // reset previous episode
+
+    const res = await fetchTvSeasonDetails(id as string, seasonNumber);
+    if (res?.episodes?.length > 0) {
+      setEpisodes(res.episodes);
+    } else {
+      setEpisodes([]);
+    }
+  } catch (err) {
+    console.error("❌ Error fetching season:", err);
+    ToastAndroid.show("Failed to load episodes", ToastAndroid.SHORT);
+  }
 };
 
-const rotateToPortrait = async () => {
-  await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-};
+
+  const rotateToLandscape = async () => {
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+  };
+
+  const rotateToPortrait = async () => {
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+  };
 
   useEffect(() => {
-  if (showTrailer) {
-    rotateToLandscape();
-  } else {
-    rotateToPortrait();
-  }
-}, [showTrailer]);
+    if (showTrailer) {
+      rotateToLandscape();
+    } else {
+      rotateToPortrait();
+    }
+  }, [showTrailer]);
+
+  useEffect(() => {
+    if(moviePlayer) {
+      rotateToLandscape();
+    } else {
+      rotateToPortrait();
+    }
+  }, [moviePlayer]);
+  
 
 
   useEffect(() => {
@@ -200,7 +233,7 @@ const rotateToPortrait = async () => {
                 modestbranding: true,
                 rel: false,
                 fs: true, // show fullscreen button
-                showinfo: false, 
+                showinfo: false,
                 iv_load_policy: 3, // hide annotations
               }}
             />
@@ -224,7 +257,7 @@ const rotateToPortrait = async () => {
                 loop
                 autoPlay
                 scrollAnimationDuration={1000}
-                onProgressChange={(_, absoluteProgress) =>
+                onProgressChange={(_:number, absoluteProgress:number) =>
                   (progressValue.value = absoluteProgress)
                 }
                 renderItem={({ item }: { item: { file_path: string } }) => (
@@ -256,12 +289,90 @@ const rotateToPortrait = async () => {
             />
           )}
 
+          {type === 'tv' && movie?.seasons && movie?.seasons?.length > 0 && (
+  <View style={{ marginTop: 20 }}>
+    <Text className="text-white font-semibold mb-2">Choose Season</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {movie?.seasons
+        .filter(s => s.season_number > 0) // skip specials
+        .map(season => (
+          <TouchableOpacity
+            key={season.id}
+            onPress={() => handleSeasonSelect(season.season_number)}
+            className={`px-4 py-2 rounded-full mr-3 ${selectedSeason === season.season_number ? 'bg-accent' : 'bg-dark-100'}`}
+          >
+            <Text className="text-white">S{season.season_number}</Text>
+          </TouchableOpacity>
+        ))}
+    </ScrollView>
+
+    {episodes.length > 0 && (
+      <>
+        <Text className="text-white font-semibold mt-4 mb-2">Choose Episode</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {episodes.map((ep) => (
+            <TouchableOpacity
+              key={ep.id}
+              onPress={() => setSelectedEpisode(ep.episode_number)}
+              className={`px-4 py-2 rounded-full mr-3 ${selectedEpisode === ep.episode_number ? 'bg-accent' : 'bg-dark-100'}`}
+            >
+              <Text className="text-white">E{ep.episode_number}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </>
+    )}
+  </View>
+)}
+
+
+
+          {movie?.id ? (
+            <TouchableOpacity
+  onPress={() => {
+    if (type === 'tv') {
+      if (!selectedSeason || !selectedEpisode) {
+        ToastAndroid.show('Please select season and episode', ToastAndroid.SHORT);
+        return;
+      }
+    }
+
+    const baseURL = `https://video-embeder.vercel.app`;
+    const url = type === 'movie'
+      ? `${baseURL}/?movieId=${movie.id}&mediaType=movie`
+      : `${baseURL}/?movieId=${movie.id}&mediaType=tv&season=${selectedSeason}&episode=${selectedEpisode}`;
+
+    router.push({
+      pathname: '/webview',
+      params: {
+        url: encodeURIComponent(url),
+        title: encodeURIComponent(`${movie?.name || movie?.title || 'Player'}`)
+      }
+    });
+  }}
+>
+  <View className="flex-row items-center justify-center mt-4 mb-6 border border-accent rounded-lg p-4 gap-4">
+    <Image
+      source={icons.movieIcon}
+      className="w-12 h-12"
+      style={{ tintColor: '#1fb141' }}
+    />
+    <Text className="text-white font-bold text-base">Watch {type === 'tv' ? 'Episode' : 'Movie'}</Text>
+  </View>
+</TouchableOpacity>
+
+          ) : (
+            <Text style={{ color: '#fff', textAlign: 'center' }}>Movie/Series not available</Text>
+          )}
+
           {trailer?.key && (
             <TouchableOpacity
-              className="absolute bottom-4 right-4 bg-black/60 p-3 rounded-full z-20"
+              className="absolute -bottom-8 right-4 bg-black/60 p-3 rounded-full z-20"
               onPress={() => setShowTrailer(true)}
             >
-              <Image source={icons.play} className="w-6 h-6" tintColor="#fff" />
+
+              <Text className="text-white text-lg font-bold">▶ Watch trailer</Text>
+
             </TouchableOpacity>
           )}
 
@@ -370,36 +481,36 @@ const rotateToPortrait = async () => {
             )}
 
             <View className="flex-row flex-wrap justify-between mt-4">
-              {movie.budget > 0 && (
+              {(movie?.budget ?? 0) > 0 && (
                 <View className="mt-4">
                   <Text className="text-white text-base font-semibold mb-1">Budget</Text>
                   <Text className="text-gray-400 font-semibold text-[0.95rem]">
-                    ${formatVoteCount(movie.budget)}
+                    ${formatVoteCount(movie.budget ?? 0)}
                   </Text>
                 </View>
               )}
 
-              {movie.revenue > 0 && (
+              {(movie.revenue ?? 0) > 0 && (
                 <View className="mt-4">
                   <Text className="text-white text-base font-semibold mb-1">Revenue</Text>
                   <Text className="text-gray-400 font-semibold text-[0.95rem]">
-                    ${formatVoteCount(movie.revenue)}
+                    ${formatVoteCount(movie.revenue ?? 0)}
                   </Text>
                 </View>
               )}
 
-              {movie.budget > 0 && movie.revenue > 0 && (
+              {(movie.budget ?? 0) > 0 && (movie.revenue ?? 0) > 0 && (
                 <View className="mt-4">
                   <Text className="text-white text-base font-semibold mb-1">Current Status</Text>
                   <Text
-                    className={`text-sm px-2 py-1 rounded self-start font-semibold ${movie.revenue >= movie.budget
+                    className={`text-sm px-2 py-1 rounded self-start font-semibold ${(movie.revenue ?? 0) >= (movie.budget ?? 0)
                       ? 'text-green-400 bg-green-900/40'
                       : 'text-red-400 bg-red-900/40'
                       }`}
                   >
-                    {movie.revenue >= movie.budget
-                      ? `Profit: $${formatVoteCount(movie.revenue - movie.budget)}`
-                      : `Loss: $${formatVoteCount(movie.budget - movie.revenue)}`}
+                    {(movie.revenue ?? 0) >= (movie.budget ?? 0)
+                      ? `Profit: $${formatVoteCount((movie.revenue ?? 0) - (movie.budget ?? 0))}`
+                      : `Loss: $${formatVoteCount((movie.budget ?? 0) - (movie.revenue ?? 0))}`}
                   </Text>
                 </View>
               )}
@@ -419,7 +530,7 @@ const rotateToPortrait = async () => {
                   }) => (
 
                     <TouchableOpacity
-                    key={member.id}
+                      key={member.id}
                       className="mt-6 mb-4"
                       onPress={() => router.push({
                         pathname: '/people/[personId]',

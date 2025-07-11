@@ -31,22 +31,22 @@ interface TrendingMovie {
 interface MovieDetails {
   adult: boolean;
   backdrop_path: string | null;
-  belongs_to_collection: {
+  belongs_to_collection?: {
     id: number;
     name: string;
     poster_path: string;
     backdrop_path: string;
   } | null;
-  budget: number;
+  budget?: number;
   genres: {
     id: number;
     name: string;
   }[];
   homepage: string | null;
   id: number;
-  imdb_id: string | null;
+  imdb_id?: string | null;
   original_language: string;
-  original_title: string;
+  original_title?: string;
   overview: string | null;
   popularity: number;
   poster_path: string | null;
@@ -60,11 +60,11 @@ interface MovieDetails {
     iso_3166_1: string;
     name: string;
   }[];
-  release_date: string;
-  first_air_date?: string; 
+  release_date?: string;
+  first_air_date?: string;
   last_air_date?: string;
-  revenue: number;
-  runtime: number | null;
+  revenue?: number;
+  runtime?: number | null;
   spoken_languages: {
     english_name: string;
     iso_639_1: string;
@@ -72,12 +72,27 @@ interface MovieDetails {
   }[];
   status: string;
   tagline: string | null;
-  title: string;
-  name?: string; // For TV shows
+  title?: string;
+  name?: string; // for TV shows
   video: boolean;
   vote_average: number;
   vote_count: number;
+
+  // 🔥 Additions for TV shows
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+  seasons?: {
+    air_date: string;
+    episode_count: number;
+    id: number;
+    name: string;
+    overview: string;
+    poster_path: string | null;
+    season_number: number;
+    vote_average: number;
+  }[];
 }
+
 
 interface TrendingCardProps {
   movie: TrendingMovie;
