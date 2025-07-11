@@ -1,6 +1,51 @@
-# Welcome to your Expo app 👋
+# 🍿 Popcorn Play
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Popcorn Play** is a sleek and modern mobile app built using **React Native (Expo)** that allows users to explore trending movies and TV shows, watch trailers, and manage their favorites. It provides an IMDb-like experience — mobile-first, fast, and feature-rich — powered by the **TMDb API** and backed by **Appwrite**.
+
+---
+
+## 🚀 Features
+
+- 🔐 **User Authentication** (Sign Up / Login / Logout via Appwrite)
+- 🔍 **Search** for movies and TV shows
+- 🔄 **Infinite Scrolling & Pagination** for trending and search results
+- 📄 **Detailed Pages** with synopsis, cast, genres, release info, and ratings
+- 🎬 **YouTube Trailer Playback** within the app
+- 🧑‍🤝‍🧑 **Cast and Crew Details** with images and character info
+- 🌐 **Streaming Provider Info**: Know where to watch
+- 💾 **Save Movies/TV Shows** to your Appwrite database
+- ✨ **Shimmer/Skeleton Loaders** for better loading UX
+- 🎨 Polished, responsive UI optimized for all screen sizes
+
+---
+
+## 📱 Screenshots
+
+| Home | Movie Details | Cast Details | Search | Filters |
+|------|---------|----------------|-------|
+| *(Add screenshots or GIFs)* | *(Add screenshots)* | *(Add screenshots)* | *(Add screenshots)* |
+
+---
+
+## ⚙️ Tech Stack
+
+- **React Native** (with **Expo**)
+- **Appwrite** (for Auth + Database + Storage)
+- **TMDb API** (movie, TV, trailer, cast, watch providers)
+- **React Navigation** (stack/screen transitions)
+- **Axios** (data fetching)
+- **Shimmer Placeholders** (skeleton loaders)
+
+---
+
+## 📦 Getting Started
+
+### 1. Clone the Repo
+
+```bash
+git clone https://github.com/nilesh384/Popcorn-Play.git
+cd Popcorn-Play
+
 
 ## Get started
 
@@ -10,7 +55,31 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+3. Create a .env file in the root:
+
+
+TMDB_API_KEY=your_tmdb_api_key
+APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your_project_id
+APPWRITE_DATABASE_ID=your_database_id
+APPWRITE_COLLECTION_ID=your_collection_id
+APPWRITE_BUCKET_ID=your_bucket_id
+
+
+4. 🗂️ Folder Structure
+
+Popcorn-Play/
+├── app/                   # Screens, routes
+├── assets/                # Fonts, images, icons
+├── components/            # Reusable UI elements
+├── constants/             # Colors, icons, images
+├── services/              # API integrations (TMDb + Appwrite)
+├── utils/                 # Helpers and utilities
+├── .env                   # Environment variables
+└── App.js                 # Entry point
+
+
+5. Start the app
 
    ```bash
    npx expo start
@@ -23,28 +92,26 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Acknowledgements
 
-## Get a fresh project
 
-When you're ready, run:
+TMDb — the amazing open movie API
 
-```bash
-npm run reset-project
-```
+Appwrite — powerful backend-as-a-service
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Expo — fast React Native development
 
-## Learn more
 
-To learn more about developing your project with Expo, look at the following resources:
+## ⚠️ Disclaimer
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Popcorn Play was built for educational and development purposes.
 
-## Join the community
+🛑 This app includes a **developer-only feature** to stream full movies and series for free.  
+It was added **just for fun**, and to explore how streaming integrations work.  
+Please be aware:
 
-Join our community of developers creating universal apps.
+- This feature is **NOT safe or legal to use in production**
+- It is **not intended for public release**
+- Streaming copyrighted content without proper rights is illegal and violates DMCA and local laws
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> ❗ **Use it only for learning. Do not deploy or distribute this feature.**
