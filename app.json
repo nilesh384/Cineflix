@@ -1,12 +1,13 @@
 {
   "splash": {
-  "image": "./assets/images/logo1.png",
-  "resizeMode": "contain",
-  "backgroundColor": "#111"
-},
+    "image": "./assets/images/logo1.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#111"
+  },
   "expo": {
-    "name": "",
-    "slug": "popcorn_play",
+    "name": "Popcorn Play",
+  "slug": "popcorn_play",
+  "owner": "pokemon_070",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo1.png",
@@ -47,7 +48,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2e9ebd4b-b811-4e4d-bac0-b6c26e85f9f8"
+        "projectId": "53c279cf-08a1-410c-9912-1e2cedfce6f6"
       }
     }
   }
